@@ -1,11 +1,26 @@
-import  "../proxy_config.mjs" 
+
 import dotenv from "dotenv"
 import express from "express"
 import mongoose from "mongoose";
 import { DB_NAME} from "./constants.js";
 import connectDB from "./db/dbConnection.js"
 dotenv.config();
-connectDB();
+const app = express();
+
+
+connectDB()
+.then(() => {
+    app.listen(process.env.PORT || 8000, () => {
+        console.log(`Server connected at port: ${process.env.PORT}`);
+    });
+    
+    app.on("error", (error) => {
+        console.log(`Server unable to communicate !! ${error}`);
+    });
+})
+.catch((error) => {
+    console.log(`MongoDB Connection Failed!!! ${error}`);
+})
 
 
 /* //* IIFE to connect to db
