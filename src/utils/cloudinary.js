@@ -1,8 +1,6 @@
 import {v2 as cloudinary} from "cloudinary"   // v2 as cloudinary means we are making alias of v2 name
-
 import fs from "fs"
 
-import {v2 as cloudinary} from 'cloudinary';
           
 cloudinary.config({ 
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME, 
@@ -11,7 +9,7 @@ cloudinary.config({
 });
 
 // this utility function can be used anywhere we just have to provide the filePath and it will provde info after uploading the file
-const uploadOnCLoudinary = async (localFilePath) => {
+const uploadOnCloudinary = async (localFilePath) => {
     try{
 
         if(!localFilePath){
@@ -40,4 +38,4 @@ const uploadOnCLoudinary = async (localFilePath) => {
 }
 
 
-export default uploadOnCLoudinary;
+export default uploadOnCloudinary;
