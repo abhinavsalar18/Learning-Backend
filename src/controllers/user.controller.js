@@ -3,11 +3,11 @@ import APIError from "../utils/APIError.js"
 import APIResponse from "../utils/APIResponse.js"
 
 import {User} from "../models/user.model.js";
-import {uploadOnCloudinary} from "../utils/cloudinary.js"
+import uploadOnCloudinary from "../utils/cloudinary.js"
 
 const registerUser = asyncHandler ( async (req, res) => {
    const {username, email, fullName, password} = req.body;
-
+     console.log(req.body);
    // validating the data - not empty check
    // we can write normal  if else 
    if( [ username, fullName, email, password ].some((field) => field?.trim() === "" ) ){
@@ -15,7 +15,7 @@ const registerUser = asyncHandler ( async (req, res) => {
    }
 
    const isUserExists = await User.findOne({
-            $or: [ email, username ]
+            $or: [ {email}, {username} ]
         }
    );
 
@@ -55,4 +55,8 @@ const registerUser = asyncHandler ( async (req, res) => {
    )
 })
 
-export {registerUser};
+
+const testRoute = asyncHandler(async (req, res) => {
+     console.log(req.body);
+})
+export {registerUser, testRoute};

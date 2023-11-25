@@ -22,8 +22,7 @@ app.use(cookieParser());
 app.use(express.static("public"));
 
 //user routes
-// console.log("hello");
-// console.log(userRouter);
 app.use("/api/v1/users", userRouter);
+// app.use("/api/v1/test", )
 
 export default app;
