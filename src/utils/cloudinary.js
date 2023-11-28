@@ -13,7 +13,7 @@ const uploadOnCloudinary = async (localFilePath) => {
     try{
 
         if(!localFilePath){
-            console.log(new Error("Unable to locate file!"));
+            console.log(new Error("\n Unable to locate file!"));
             return null;
         } 
 
@@ -24,7 +24,10 @@ const uploadOnCloudinary = async (localFilePath) => {
 
         //file has been uploaded on cloudinary successfully!
         // response has many fields like url from cloudinary
-        console.log("File has been uploaded on cloudinary! \n Response: ", response);
+
+        // removing the file from cloudinary 
+        fs.unlinkSync(localFilePath);
+        console.log("\nFile has been uploaded on cloudinary! \n Response: ", response?.url);
         return response;
 
     } catch (error) {
