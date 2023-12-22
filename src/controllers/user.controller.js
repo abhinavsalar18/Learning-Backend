@@ -159,7 +159,7 @@ const loginUser = asyncHandler (async (req, res) => {
 // for logout we need to remove cookies and delete refresh token
 // but how to get the userId 🤔🤔? -> here comes the use of our custom middleware
 // using auth middleswware we will add the user details in req object using access token
-// req.user <- this the name of newly added field
+// req.user <- this the name of newly added field which contains the userInfo
 const logoutUser = asyncHandler (async (req, res) => {
      await User.findByIdAndUpdate(res.user._id,
           {

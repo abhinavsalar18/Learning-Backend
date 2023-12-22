@@ -22,6 +22,6 @@ router.route("/register").post(
 router.route("/login").post(loginUser);
 
 //secure routes
-// in post we can pass any number of functions, middlewares, next transfer controll to one after other
+// in post method we can pass any number of functions, middlewares, next transfer controll to one after other
 router.route("/logout").post(verifyJWT, logoutUser);
 export default router;

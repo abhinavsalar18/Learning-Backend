@@ -22,7 +22,7 @@ const verifyJWT = asyncHandler( async (req, res, next) => {
             throw new APIError(401, "Invalid access token")
         }
         
-        // setting a field called user in the req object; we can name it whatever we want.
+        // setting a field named user in the req object; we can name it whatever we want.
         req.user = user;
         next();
 
