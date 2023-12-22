@@ -1,6 +1,7 @@
 import { Router } from "express";
-import { registerUser, testRoute } from "../controllers/user.controller.js";
+import { loginUser, logoutUser, registerUser, testRoute } from "../controllers/user.controller.js";
 import {upload} from  "../middlewares/multer.middleware.js"
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
@@ -18,5 +19,9 @@ router.route("/register").post(
     registerUser
 );
 
-router.route("/test_route", testRoute);
+router.route("/login").post(loginUser);
+
+//secure routes
+// in post we can pass any number of functions, middlewares, next transfer controll to one after other
+router.route("/logout").post(verifyJWT, logoutUser);
 export default router;

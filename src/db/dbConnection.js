@@ -1,7 +1,6 @@
 import dotenv from "dotenv"
 import mongoose, { connect } from "mongoose";
 import { DB_NAME } from "../constants.js";
-import asyncHandler from "../utils/asyncHandler.js";
 
 dotenv.config();
 
