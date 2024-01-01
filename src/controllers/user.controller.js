@@ -187,6 +187,7 @@ const logoutUser = asyncHandler (async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler ( async (req, res) => {
+     // for mobile apps refreshToken from req.body
      const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
      if(!incomingRefreshToken){
@@ -194,6 +195,7 @@ const refreshAccessToken = asyncHandler ( async (req, res) => {
      }
 
      try {
+               // verifying the incomingToken
                const decodedToken = jwt.verify(
                     incomingRefreshToken, 
                     process.env.REFRESH_TOKEN_SECRET
@@ -201,6 +203,7 @@ const refreshAccessToken = asyncHandler ( async (req, res) => {
           
                const user = await User.findById(decodedToken?._id);
           
+               // getting saved refresh token from user details
                if(!user){
                     throw new APIError(401, "Invalid refresh token")
                }
