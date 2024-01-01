@@ -5,23 +5,22 @@ import APIResponse from "../utils/APIResponse.js"
 import {User} from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js"
 
-const generateAccessAndRefreshToken = async (userId) => {
-     try{
-          const user = await User.findById(userId);
-          const accessToken = user.generateAccessToken();
-          const refreshToken = user.generateRefreshToken();
-
-          //updating the user instance -> adding refresh token in db
-
-          user.refreshToken = refreshToken;
-          await user.save({validateBeforeSave: false});  // do not check for other fields just save it
-
-          return {accessToken, refreshToken};
+const generateAccessAndRefreshTokens = async (userId) =>{
+     try {
+         const user = await User.findById(userId);
+         const accessToken = user.generateAccessToken();
+         const refreshToken = user.generateRefreshToken();
+ 
+         user.refreshToken = refreshToken;
+         await user.save({ validateBeforeSave: false });
+ 
+         return {accessToken, refreshToken};
+ 
+ 
+     } catch (error) {
+         throw new APIError(500, "Something went wrong while generating referesh and access token")
      }
-     catch(err){
-          throw new APIError(500, "Something went wrong while generating access and regresh token!")
-     }
-}
+ }
 
 const registerUser = asyncHandler ( async (req, res) => {
    const {username, email, fullName, password} = req.body;
@@ -120,8 +119,8 @@ const loginUser = asyncHandler (async (req, res) => {
      }
 
      // user logged in generate access and refresh token
-     const {accessToken, refreshToken} = await generateAccessAndRefreshToken(user._id);
-
+     const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id);
+     
      // currently user does not have token so either we have to fetch it from db
      // or we can simply send it manually to user
 
@@ -141,7 +140,7 @@ const loginUser = asyncHandler (async (req, res) => {
      res
      .status(200)
      .cookie("accessToken", accessToken, options)
-     .cookie("refreshToken", refreshToken.options)
+     .cookie("refreshToken", refreshToken, options)
      .json(
           new APIResponse(
                200,
@@ -161,7 +160,7 @@ const loginUser = asyncHandler (async (req, res) => {
 // using auth middleswware we will add the user details in req object using access token
 // req.user <- this the name of newly added field which contains the userInfo
 const logoutUser = asyncHandler (async (req, res) => {
-     await User.findByIdAndUpdate(res.user._id,
+     await User.findByIdAndUpdate(req.user._id,
           {
                $set: {
                     refreshToken: undefined

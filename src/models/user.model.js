@@ -81,32 +81,42 @@ userSchema.methods.isPasswordCorrect = async function (password){
 }
 
 // jwt sign is very fast we do not need of async
-userSchema.methods.generateAccessToken = async function () {
-    return jwt.sign(
+userSchema.methods.generateAccessToken = function () {
+    const accessToken = jwt.sign(
         {
             _id: this._id,
+            email: this.email,
             username: this.username,
-            fullName: this.fullName,
-            email: this.email
+            fullName: this.fullName
         },
         process.env.ACCESS_TOKEN_SECRET,
         {
             expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
-    )
+    );
+    // console.log("accessToken: ", accessToken);
+    return accessToken;
 }
 
-userSchema.methods.generateRefreshToken = async function (){
-    return jwt.sign(
-        {
-            // refresh tokens should be light in payload
-            _id: this._id,
-        },
-        process.env.REFRESH_TOKEN_SECRET,
-        {
-            expiresIn: process.env.RFERSH_TOKEN_EXPIRY
-        }
-    )
+userSchema.methods.generateRefreshToken = function () {
+    // console.log("generating refresh token", process.env.REFRESH_TOKEN_EXPIRY);
+     try {
+        const refreshToken = jwt.sign(
+           {
+               _id: this._id,
+               
+           },
+           process.env.REFRESH_TOKEN_SECRET,
+           {
+               expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+           }
+       );
+    //    console.log("refreshToken: ", refreshToken);
+       return refreshToken;
+     } catch (error) {
+        console.log(error.message);
+     }
+   return null;
 }
 
 export const User = mongoose.model("User", userSchema);

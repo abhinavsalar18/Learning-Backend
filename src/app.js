@@ -24,5 +24,4 @@ app.use(express.static("public"));
 //user routes
 app.use("/api/v1/users", userRouter);
 // app.use("/api/v1/test", )
-
 export default app;
