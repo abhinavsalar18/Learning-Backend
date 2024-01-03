@@ -268,12 +268,38 @@ const updateUserPassword = asyncHandler (async (req, res) => {
 });
 
 const getCurrentUser = asyncHandler (async (req, res) => {
-
+     return res
+          .status(200)
+          .json(new APIResponse(200, {user: req?.user}, "Current user fetched successfully!"))
 });
 
 
 const updateUserAccountDetails = asyncHandler (async (req, res) => {
+     const {fullName, email} = req.body;
+     // console.log("fullName: " + fullName + " email: " + email);
+     if(!email || !fullName){
+          throw new APIError(400, "All fields are required!")
+     }
 
+     const updatedUser = await User.findByIdAndUpdate(
+          req?.user?._id,
+          {
+               $set: {
+                    // mongoDB update this field based on the field name matched with it, if not matched
+                    // a new field will be created with name of variable: (In ES6 syntax we can pass the value(var name)
+                    // directly if it matched to the field name else write fullName: newValue)
+
+                    fullName, 
+                    email: email
+               }
+          },
+          { new: true },
+          ).select("-password"); // this select method works on the updated user details
+     
+          // console.log("updatedUser: ", updatedUser);
+     return res
+          .status(200)
+          .json(new APIResponse(200, {user: updatedUser}, "User account details updated successfully!"))
 });
 
 const updateUserCoverImage = asyncHandler (async (req, res) => {
@@ -291,5 +317,6 @@ export {
      logoutUser, 
      refreshAccessToken,
      updateUserPassword,
-
+     getCurrentUser,
+     updateUserAccountDetails
 };
