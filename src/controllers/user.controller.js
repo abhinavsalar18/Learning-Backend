@@ -199,7 +199,9 @@ const refreshAccessToken = asyncHandler ( async (req, res) => {
                const decodedToken = jwt.verify(
                     incomingRefreshToken, 
                     process.env.REFRESH_TOKEN_SECRET
-               )
+               );
+
+               // console.log("decodedToken: ", decodedToken);
           
                const user = await User.findById(decodedToken?._id);
           
@@ -236,5 +238,58 @@ const refreshAccessToken = asyncHandler ( async (req, res) => {
      } catch (error) {
           console.log(error?.message || "Invalid refresh token");
      }
-})
-export {registerUser, loginUser, logoutUser, refreshAccessToken};
+});
+
+const updateUserPassword = asyncHandler (async (req, res) => {
+     const {oldPassword, newPassword} = req?.body;
+
+     if(!oldPassword || !newPassword){
+          throw new APIError(400, "All fileds are required!");
+     }
+
+     const user = await User.findById(req.user?._id);
+
+     if(!user){
+          throw new APIError(401, "Unauthorized request!");
+     }
+
+     const isPasswordCorrect = await user.isPasswordCorrect(oldPassword);
+
+     if(!isPasswordCorrect){
+          throw new APIError(400, "Invalid old password!");
+     }
+
+     user.password = newPassword;
+     await user.save({validateBeforeSave: false}, {new: true});
+
+     return res
+          .status(200)
+          .json(new APIResponse(200, {}, "Password updated successfully!"));
+});
+
+const getCurrentUser = asyncHandler (async (req, res) => {
+
+});
+
+
+const updateUserAccountDetails = asyncHandler (async (req, res) => {
+
+});
+
+const updateUserCoverImage = asyncHandler (async (req, res) => {
+
+});
+
+const updateUserAvatar = asyncHandler ( async (req, res) => {
+
+});
+
+
+export {
+     registerUser, 
+     loginUser, 
+     logoutUser, 
+     refreshAccessToken,
+     updateUserPassword,
+
+};
