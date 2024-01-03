@@ -5,6 +5,7 @@ import APIResponse from "../utils/APIResponse.js"
 import {User} from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken";
+import { upload } from "../middlewares/multer.middleware.js";
 
 const generateAccessAndRefreshTokens = async (userId) =>{
      try {
@@ -302,13 +303,68 @@ const updateUserAccountDetails = asyncHandler (async (req, res) => {
           .json(new APIResponse(200, {user: updatedUser}, "User account details updated successfully!"))
 });
 
-const updateUserCoverImage = asyncHandler (async (req, res) => {
-
-});
 
 const updateUserAvatar = asyncHandler ( async (req, res) => {
+     console.log()
+     const avatarLocalPath = req?.files?.avatar[0].path;
+
+     console.log(avatarLocalPath);
+     if(!avatarLocalPath){
+          throw new APIError(400, "Avatar file is missing")
+     }
+
+     const avatar = await uploadOnCloudinary(avatarLocalPath);
+
+     if(!avatar.url){
+          throw new APIError(400, "Error while uploading avatar!")
+     }
+
+     const updatedUser = await User.findByIdAndUpdate(
+          req?.user?._id,
+          {
+               $set: {
+                    avatarImage: avatar.url
+               }
+          },
+          {new: true}
+     ).select("-password");
+
+     return res
+          .status(200)
+          .json(new APIResponse(200, {user: updatedUser}, "Avatar image updated successfully!"))
+});
+
+const updateUserCoverImage = asyncHandler (async (req, res) => {
+     console.log(req.files);
+     const converImageLocalPath = req.files?.coverImage[0].path;
+
+     if(!converImageLocalPath){
+          throw new APIError(400, "Cover image file is missing");
+     }
+
+     const coverImage = await uploadOnCloudinary(converImageLocalPath);
+
+     if(!coverImage.url){
+          throw new APIError(500, "Error while uploading cover image!")
+     }
+     
+     const updatedUser = await User.findByIdAndUpdate(
+          req.user?._id,
+          {
+               $set: {
+                    coverImage: coverImage.url
+               }
+          },
+          { new: true }
+     ).select("-password");
+
+     return res
+          .status(200)
+          .json(new APIResponse(200, {user: updatedUser}, "Cover image updated successfully!"));
 
 });
+
+
 
 
 export {
@@ -318,5 +374,7 @@ export {
      refreshAccessToken,
      updateUserPassword,
      getCurrentUser,
-     updateUserAccountDetails
+     updateUserAccountDetails,
+     updateUserAvatar,
+     updateUserCoverImage
 };
