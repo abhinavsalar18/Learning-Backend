@@ -64,7 +64,7 @@ const userSchema = new mongoose.Schema(
 // we can do some processing here using middlewares
 
 
-// event based middleware (even, callback)
+// event based middleware (event, callback)
 // we can not use fat arrow function here because they don't have access to the "this"
 // the computation takes some time => async -> next to pass it further
 userSchema.pre("save", async function (next){

@@ -20,7 +20,7 @@ const generateAccessAndRefreshTokens = async (userId) =>{
  
  
      } catch (error) {
-         throw new APIError(500, "Something went wrong while generating referesh and access token")
+         throw new APIError(500, "Something went wrong while generating refresh and access token")
      }
  }
 
@@ -305,7 +305,9 @@ const updateUserAccountDetails = asyncHandler (async (req, res) => {
 
 
 const updateUserAvatar = asyncHandler ( async (req, res) => {
-     console.log()
+     // we need to inject 2 middleswares to make this controller to work
+     //1: auth middleware to set the user inside req
+     //2: multer to get and keep files in on the local machine before uploading
      const avatarLocalPath = req?.files?.avatar[0].path;
 
      console.log(avatarLocalPath);
@@ -364,6 +366,80 @@ const updateUserCoverImage = asyncHandler (async (req, res) => {
 
 });
 
+
+// get user channel profile
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+     const { username } = req?.params;
+     
+     if (!username?.trim()) {
+          throw new APIError(400, "Username is missing!");
+     }
+
+     // aggregation pipeline
+     const channel = await User.aggregate([
+          {
+               $match: {
+                    username: username?.toLowerCase()
+               },
+          },
+          {
+               $lookup: {
+                    from: "subscriptions",
+                    localField: "_id",
+                    foreignField: "channel",
+                    as: "subscribers"
+               }
+          },
+          {
+               $lookup: {
+                    from: "subscriptions",
+                    localField: "_id",
+                    foreignField: "subscriber",
+                    as: "subscribedTo"
+              } 
+          },
+          {
+               $addFields: {
+                    subscribersCount: {
+                         $size: "$subscribers"
+                    },
+                    channelSubscribedTo: {
+                         $size: "$subscribedTo"
+                    },
+                    isSubscribed: {
+                         $cond: { //subscriber -> model contains subscriber & channel fields =? subscriber -> _id (userId)
+                              if: { $in: [req?.user?._id, "$subscribers.subscriber"] },
+                              then: true,
+                              else: false
+                         }
+                    }
+               }
+          },
+          {
+               $project: {
+                    // we can also rename the field name -> emailId: "$email"
+                    fullName: 1,
+                    username: 1,
+                    email: 1,
+                    avatar: 1,
+                    coverImage: 1,
+                    subscribersCount: 1,
+                    channelSubscribedTo: 1,
+                    isSubscribed: 1,
+               }
+          }
+     ])
+
+     if (!channel?.length) {
+          throw new APIError(400, "Unable to find channel details");
+     }
+
+     res
+     .status(200)
+     .json(
+          new APIResponse(200, channel[0], "User channel fetched successfully")
+     )
+})
 
 
 
