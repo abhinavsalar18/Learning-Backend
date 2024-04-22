@@ -6,6 +6,7 @@ import {User} from "../models/user.model.js";
 import uploadOnCloudinary from "../utils/cloudinary.js"
 import jwt from "jsonwebtoken";
 import { upload } from "../middlewares/multer.middleware.js";
+import mongoose from "mongoose";
 
 const generateAccessAndRefreshTokens = async (userId) =>{
      try {
@@ -164,8 +165,8 @@ const loginUser = asyncHandler (async (req, res) => {
 const logoutUser = asyncHandler (async (req, res) => {
      await User.findByIdAndUpdate(req.user._id,
           {
-               $set: {
-                    refreshToken: undefined
+               $unset: {
+                    refreshToken: 1
                }
           },
           {
@@ -308,7 +309,10 @@ const updateUserAvatar = asyncHandler ( async (req, res) => {
      // we need to inject 2 middleswares to make this controller to work
      //1: auth middleware to set the user inside req
      //2: multer to get and keep files in on the local machine before uploading
-     const avatarLocalPath = req?.files?.avatar[0].path;
+
+     //earlier I was using upload.fields method from which I was extracting avatar field
+     // now I am using upload.single => which contains file fields in req => req?.file?.path -> avatar path
+     const avatarLocalPath = req?.file?.path;
 
      console.log(avatarLocalPath);
      if(!avatarLocalPath){
@@ -337,8 +341,7 @@ const updateUserAvatar = asyncHandler ( async (req, res) => {
 });
 
 const updateUserCoverImage = asyncHandler (async (req, res) => {
-     console.log(req.files);
-     const converImageLocalPath = req.files?.coverImage[0].path;
+     const converImageLocalPath = req?.file?.path;
 
      if(!converImageLocalPath){
           throw new APIError(400, "Cover image file is missing");
@@ -441,7 +444,63 @@ const getUserChannelProfile = asyncHandler(async (req, res) => {
      )
 })
 
+const getWatchHistory = asyncHandler(async (req, res) => {
+     //req.user._id -> contains Id in string format mongoose automatically converts that into mongoId before opreations like find, update etc.
+     // but in case of aggregation pipelines data will be passeed as it as therefore we need explicit conversion
 
+     const user = await User.aggregate([
+          {
+               $match: {
+                    _id: new mongoose.Types.ObjectId(req?.user?._id)
+               }
+          },
+          {
+               $lookup: {
+                    from: "videos",
+                    localField: "watchHistory",
+                    foreignField: "_id",
+                    as: "watchHistory",
+                    pipeline: [
+                         {
+                              $lookup: {
+                                   from: "users",
+                                   localField: "owner",
+                                   foreignField: "_id",
+                                   as: "owner",
+                                   pipeline: [
+                                        {
+                                             $project: {
+                                                  username: 1,
+                                                  fullName: 1,
+                                                  email: 1,
+                                                  avatar: 1,
+                                             }
+                                        }
+                                   ]
+                              }
+                         },
+                         {
+                              $addFields: {
+                                   owner: {
+                                        $first: "$owner"
+                                   }
+                              }
+                         }
+                    ]
+               }
+          }
+     ]);
+
+     return res
+     .status(200)
+     .json(
+          new APIResponse(
+               200,
+               user[0].watchHistory,
+               "watch history fetched successfully!"
+          )
+     );
+})
 
 export {
      registerUser, 
@@ -452,5 +511,7 @@ export {
      getCurrentUser,
      updateUserAccountDetails,
      updateUserAvatar,
-     updateUserCoverImage
+     updateUserCoverImage,
+     getUserChannelProfile,
+     getWatchHistory
 };
